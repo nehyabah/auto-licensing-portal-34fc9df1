@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/popover';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 const licenseSchema = z.object({
   licenseType: z.string({
@@ -46,12 +47,21 @@ const licenseSchema = z.object({
   penaltyPoints: z.coerce.number()
     .min(0, { message: "Penalty points cannot be negative" })
     .max(12, { message: "Penalty points cannot exceed 12" }),
+  licenseDocument: z.instanceof(FileList).optional().refine(
+    (files) => !files || files.length === 0 || Array.from(files).some(file => 
+      ['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)
+    ), {
+      message: "License document must be a PDF, JPEG, or PNG file",
+    }
+  ),
 });
 
 type LicenseFormValues = z.infer<typeof licenseSchema>;
 
 const LicenseForm: React.FC = () => {
   const { addLicense } = useLicense();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<LicenseFormValues>({
     resolver: zodResolver(licenseSchema),
@@ -62,16 +72,51 @@ const LicenseForm: React.FC = () => {
     },
   });
 
-  const onSubmit = (values: LicenseFormValues) => {
-    // Format the expiry date to string before sending
-    const formattedValues = {
-      ...values,
-      expiryDate: format(values.expiryDate, 'yyyy-MM-dd'),
-    };
+  const onSubmit = async (values: LicenseFormValues) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Format the expiry date to string before sending
+      const formattedValues = {
+        licenseType: values.licenseType,
+        licenseNumber: values.licenseNumber,
+        expiryDate: format(values.expiryDate, 'yyyy-MM-dd'),
+        penaltyPoints: values.penaltyPoints,
+      };
 
-    console.log('Submitting license:', formattedValues);
-    addLicense(formattedValues);
-    form.reset();
+      // Handle file upload if present
+      if (values.licenseDocument && values.licenseDocument.length > 0) {
+        const file = values.licenseDocument[0];
+        
+        // Here we would typically upload the file to a storage service
+        // For now, we'll mock this by adding the file name to our submission
+        console.log('License document to upload:', file.name);
+        
+        // In a real app, we would:
+        // 1. Upload the file to storage (S3, Firebase, etc.)
+        // 2. Get back a URL
+        // 3. Add that URL to our license data
+      }
+
+      console.log('Submitting license:', formattedValues);
+      addLicense(formattedValues);
+      
+      toast({
+        title: "License Submitted",
+        description: "Your license has been submitted for approval.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting license:', error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "There was a problem submitting your license. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -197,11 +242,38 @@ const LicenseForm: React.FC = () => {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="licenseDocument"
+              render={({ field: { value, onChange, ...fieldProps } }) => (
+                <FormItem>
+                  <FormLabel>Upload License Document</FormLabel>
+                  <FormControl>
+                    <div className="grid w-full items-center gap-1.5">
+                      <Input
+                        id="license-document"
+                        type="file"
+                        className="cursor-pointer bg-background/50"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => onChange(e.target.files)}
+                        {...fieldProps}
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Upload a scanned copy or photo of your driver license (PDF, JPG, or PNG)
+                      </p>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button 
               type="submit" 
               className="w-full transition-all duration-300 hover:shadow-soft"
+              disabled={isSubmitting}
             >
-              Submit License Details
+              {isSubmitting ? 'Submitting...' : 'Submit License Details'}
             </Button>
           </form>
         </Form>

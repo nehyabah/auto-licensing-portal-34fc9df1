@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -95,19 +94,15 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0">
               <img 
-                src="https://res.cloudinary.com/dfjv35kht/image/upload/v1742396080/corkCity_nidn4e.png" 
+                src="https://res.cloudinary.com/dfjv35kht/image/upload/v1742396523/CORK-CITY-COUNCIL-LOGO-1_jnm9vr.jpg" 
                 alt="Cork City Council" 
-                className="h-8 mr-2" 
+                className="h-8" 
               />
-              <span className={`text-xl font-semibold text-primary ${isMobile ? 'hidden' : 'block'}`}>
-                License Portal
-              </span>
             </Link>
           </div>
           
-          {/* Desktop menu */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-4">
               {user && filteredNavItems.map((item) => (
@@ -160,7 +155,6 @@ const Navbar: React.FC = () => {
               </Button>
             )}
             
-            {/* Mobile menu button */}
             <div className="flex md:hidden ml-2">
               <button
                 onClick={toggleMobileMenu}
@@ -177,7 +171,6 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
       <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background/90 backdrop-blur-md animate-in">
           {user && filteredNavItems.map((item) => (

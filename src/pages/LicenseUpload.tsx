@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { useAuth } from '@/context/AuthContext';
 import { useLicense } from '@/context/LicenseContext';
 import LicenseCard from '@/components/LicenseCard';
-import { Info } from 'lucide-react';
+import { Info, FileText } from 'lucide-react';
 
 const LicenseUpload: React.FC = () => {
   const { user } = useAuth();
@@ -81,6 +81,17 @@ const LicenseUpload: React.FC = () => {
                       Make sure to provide accurate information from your driver license.
                       Incorrect information may result in processing delays.
                     </p>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <FileText className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-medium">Document Upload</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Please upload a clear photo or scan of your driver license. 
+                        We accept PDF, JPG, or PNG files. Make sure all details are clearly visible.
+                      </p>
+                    </div>
                   </div>
                   
                   <div>

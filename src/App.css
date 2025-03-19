@@ -48,14 +48,25 @@
   color: #888;
 }
 
-/* Mobile-friendly adjustments */
+/* Enhanced mobile-friendly adjustments */
 @media (max-width: 768px) {
   #root {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
   }
   
   .card {
     padding: 1em;
+  }
+  
+  /* Improve form inputs on mobile */
+  input[type="file"] {
+    width: 100%;
+    font-size: 14px;
+  }
+  
+  /* Ensure buttons are large enough for touch */
+  button {
+    min-height: 44px;
   }
 }
 
@@ -74,6 +85,41 @@
 
 .text-cork-blue {
   color: var(--cork-blue);
+}
+
+/* Utility classes for glass effects and animations */
+.glass {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shadow-soft {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.animate-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Fix for the License Form TypeScript error */
