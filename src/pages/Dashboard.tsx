@@ -54,35 +54,37 @@ const Dashboard = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatisticCard 
-              title="Total Licenses"
-              value={licenses.length}
-              description="Registered licenses"
-              icon={<FileInput className="h-5 w-5" />}
-            />
-            
-            <StatisticCard 
-              title="Pending Approvals"
-              value={pendingLicenses.length}
-              description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
-              icon={<CheckCheck className="h-5 w-5" />}
-            />
-            
-            <StatisticCard 
-              title="Expiring Soon"
-              value={expiringLicenses.length}
-              description="Licenses expiring in 30 days"
-              icon={<CalendarRange className="h-5 w-5" />}
-            />
-            
-            <StatisticCard 
-              title="Active Drivers"
-              value={drivers.filter(d => d.status === 'active').length}
-              description="Currently active drivers"
-              icon={<UserRound className="h-5 w-5" />}
-            />
-          </div>
+          {isManager && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatisticCard 
+                title="Total Licenses"
+                value={licenses.length}
+                description="Registered licenses"
+                icon={<FileInput className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Pending Approvals"
+                value={pendingLicenses.length}
+                description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
+                icon={<CheckCheck className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Expiring Soon"
+                value={expiringLicenses.length}
+                description="Licenses expiring in 30 days"
+                icon={<CalendarRange className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Active Drivers"
+                value={drivers.filter(d => d.status === 'active').length}
+                description="Currently active drivers"
+                icon={<UserRound className="h-5 w-5" />}
+              />
+            </div>
+          )}
           
           {isManager && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
