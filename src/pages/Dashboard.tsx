@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -43,8 +43,12 @@ const Dashboard = () => {
   // Fixed active drivers count to 600 as requested
   const activeDriversCount = 600;
   
-  // For debugging pending licenses
-  console.log("Pending licenses:", pendingLicenses);
+  useEffect(() => {
+    // This will run on component mount and help verify the licenses data
+    console.log("Dashboard loaded. Total licenses:", licenses.length);
+    console.log("Pending licenses count:", pendingLicenses.length);
+    console.log("Pending licenses:", pendingLicenses);
+  }, [licenses, pendingLicenses]);
   
   return (
     <div className="min-h-screen flex flex-col bg-secondary/30">
@@ -164,6 +168,7 @@ const Dashboard = () => {
                     Manage Approvals
                   </Button>
                   
+                  {/* Only drivers can report penalty points */}
                   {isDriver && <RegisterPointsDialog />}
                   
                   <Button 

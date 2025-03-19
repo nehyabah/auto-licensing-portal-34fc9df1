@@ -212,16 +212,31 @@ const initialNotifications: Notification[] = [
 
 export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [licenses, setLicenses] = useState<License[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [licenses, setLicenses] = useState<License[]>(initialLicenses);
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
   useEffect(() => {
-    // Load data from localStorage or use initial data if not available
+    // Load data from localStorage or use initial data
     const savedLicenses = localStorage.getItem('licenses');
     const savedNotifications = localStorage.getItem('notifications');
     
-    setLicenses(savedLicenses ? JSON.parse(savedLicenses) : initialLicenses);
-    setNotifications(savedNotifications ? JSON.parse(savedNotifications) : initialNotifications);
+    // Only use localStorage if it has valid data, otherwise use initial data
+    if (savedLicenses && JSON.parse(savedLicenses).length > 0) {
+      setLicenses(JSON.parse(savedLicenses));
+    } else {
+      // Force reset to initial data if localStorage is empty or invalid
+      localStorage.setItem('licenses', JSON.stringify(initialLicenses));
+    }
+    
+    if (savedNotifications && JSON.parse(savedNotifications).length > 0) {
+      setNotifications(JSON.parse(savedNotifications));
+    } else {
+      localStorage.setItem('notifications', JSON.stringify(initialNotifications));
+    }
+    
+    // For debugging
+    console.log("Initial licenses loaded:", initialLicenses.length);
+    console.log("Pending count:", initialLicenses.filter(l => l.status === 'pending').length);
   }, []);
 
   // Save to localStorage whenever data changes
@@ -317,7 +332,9 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const getPendingLicenses = () => {
-    return licenses.filter(license => license.status === 'pending');
+    const pending = licenses.filter(license => license.status === 'pending');
+    console.log("Getting pending licenses, found:", pending.length);
+    return pending;
   };
 
   const getDriverLicenses = (driverId: string) => {
