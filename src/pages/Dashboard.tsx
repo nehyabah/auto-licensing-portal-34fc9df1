@@ -58,7 +58,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatisticCard 
                 title="Total Licenses"
-                value={licenses.length}
+                value={600}
                 description="Registered licenses"
                 icon={<FileInput className="h-5 w-5" />}
               />
