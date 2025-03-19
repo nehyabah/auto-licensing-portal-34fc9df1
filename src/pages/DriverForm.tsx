@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, Save, Image, CalendarIcon, UserPlus, License, FileText 
+  ArrowLeft, Save, Image, CalendarIcon, UserPlus, FileText 
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -28,7 +28,6 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-// Form schema
 const driverFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -60,7 +59,6 @@ const DriverForm = () => {
   const isEditMode = !!id;
   const existingDriver = isEditMode ? getDriverById(id) : undefined;
   
-  // Initialize form
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverFormSchema),
     defaultValues: {
@@ -81,7 +79,6 @@ const DriverForm = () => {
     },
   });
   
-  // Set form values if in edit mode
   useEffect(() => {
     if (isEditMode && existingDriver) {
       const expiryDate = parseISO(existingDriver.licenseExpiryDate);
@@ -101,10 +98,8 @@ const DriverForm = () => {
     }
   }, [existingDriver, form, isEditMode]);
   
-  // Submit handler
   const onSubmit = (data: DriverFormValues) => {
     try {
-      // Convert the date to string format before saving
       const formattedData = {
         ...data,
         licenseExpiryDate: format(data.licenseExpiryDate, 'yyyy-MM-dd')
@@ -308,7 +303,7 @@ const DriverForm = () => {
                             )}
                             {!licenseImagePreview && (
                               <div className="rounded-md w-full max-w-xs h-40 border flex items-center justify-center bg-secondary/40">
-                                <License className="h-8 w-8 text-muted-foreground" />
+                                <FileText className="h-8 w-8 text-muted-foreground" />
                               </div>
                             )}
                           </div>
