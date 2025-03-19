@@ -1,16 +1,17 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { useLicense } from '@/context/LicenseContext';
 import { Button } from '@/components/ui/button';
 import LicenseCard from '@/components/LicenseCard';
 import StatisticCard from '@/components/StatisticCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import NotificationItem from '@/components/NotificationItem';
 import { Link } from 'react-router-dom';
 import { FileCheck, AlertTriangle, Clock, User, Users, FileUp, Bell } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ const Dashboard: React.FC = () => {
     getLicensesNearExpiry,
     getHighPenaltyDrivers
   } = useLicense();
+  const isMobile = useIsMobile();
 
   // Get relevant data based on user role
   const pendingLicenses = getPendingLicenses();
@@ -116,9 +118,9 @@ const Dashboard: React.FC = () => {
               Welcome, {user?.name}
             </h1>
             
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {isDriver && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link to="/license-upload">
                     <FileUp className="mr-2 h-4 w-4" />
                     Upload License
@@ -127,7 +129,7 @@ const Dashboard: React.FC = () => {
               )}
               
               {isManager && pendingLicenses.length > 0 && (
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link to="/manager-approval">
                     <FileCheck className="mr-2 h-4 w-4" />
                     View Approvals ({pendingLicenses.length})
@@ -173,7 +175,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-muted-foreground text-center">
                           You haven't uploaded any license information yet.
                         </p>
-                        <Button asChild>
+                        <Button asChild className="w-full sm:w-auto">
                           <Link to="/license-upload">Upload License</Link>
                         </Button>
                       </CardContent>
@@ -186,7 +188,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-4">
                   {pendingLicenses.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {pendingLicenses.slice(0, 4).map(license => (
+                      {pendingLicenses.slice(0, isMobile ? 2 : 4).map(license => (
                         <LicenseCard 
                           key={license.id} 
                           license={license} 
@@ -207,7 +209,7 @@ const Dashboard: React.FC = () => {
                     </Card>
                   )}
                   
-                  {pendingLicenses.length > 4 && (
+                  {pendingLicenses.length > (isMobile ? 2 : 4) && (
                     <div className="text-center">
                       <Button variant="outline" asChild>
                         <Link to="/manager-approval">

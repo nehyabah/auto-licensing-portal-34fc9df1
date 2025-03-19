@@ -14,11 +14,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ManagerApproval: React.FC = () => {
   const { getPendingLicenses } = useLicense();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseType, setLicenseType] = useState<string>('all');
+  const isMobile = useIsMobile();
   
   const pendingLicenses = getPendingLicenses();
   
@@ -86,7 +88,7 @@ const ManagerApproval: React.FC = () => {
           {/* Main Content */}
           <div className="space-y-6">
             {filteredLicenses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredLicenses.map(license => (
                   <LicenseCard 
                     key={license.id} 
@@ -97,7 +99,7 @@ const ManagerApproval: React.FC = () => {
               </div>
             ) : (
               <Card className="glass">
-                <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
+                <CardContent className={`${isMobile ? 'p-4' : 'p-6'} flex flex-col items-center justify-center space-y-4`}>
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <CheckCheck className="h-6 w-6 text-primary" />
                   </div>

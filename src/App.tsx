@@ -15,6 +15,9 @@ import ManagerApproval from "./pages/ManagerApproval";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
+// Cork City Council theme colors - adding primary color that matches their logo
+import "./App.css";
+
 const queryClient = new QueryClient();
 
 // PrivateRoute component for protected routes

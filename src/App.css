@@ -1,8 +1,15 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+/* Cork City Council brand colors */
+:root {
+  --cork-red: #CE1126;
+  --cork-blue: #005288;
 }
 
 .logo {
@@ -39,4 +46,37 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Mobile-friendly adjustments */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 1em;
+  }
+}
+
+/* Cork City Council theme overrides */
+.bg-cork-red {
+  background-color: var(--cork-red);
+}
+
+.text-cork-red {
+  color: var(--cork-red);
+}
+
+.bg-cork-blue {
+  background-color: var(--cork-blue);
+}
+
+.text-cork-blue {
+  color: var(--cork-blue);
+}
+
+/* Fix for the License Form TypeScript error */
+.fixed-form-error {
+  display: none;
 }

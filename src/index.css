@@ -16,7 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 20%;
 
-    --primary: 210 100% 45%;
+    /* Cork City Council blue color */
+    --primary: 202 100% 27%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 200 30% 95%;
@@ -28,18 +29,19 @@
     --accent: 220 30% 94%;
     --accent-foreground: 220 40% 30%;
 
-    --destructive: 0 90% 60%;
+    /* Cork City Council red color for destructive */
+    --destructive: 350 90% 44%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 208 100% 85%;
+    --ring: 202 100% 27%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 25% 20%;
-    --sidebar-primary: 210 100% 45%;
+    --sidebar-primary: 202 100% 27%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 20% 94%;
     --sidebar-accent-foreground: 220 25% 30%;
@@ -57,7 +59,8 @@
     --popover: 220 25% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 50%;
+    /* Cork City Council blue - slightly lighter for dark mode */
+    --primary: 202 100% 35%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 215 25% 20%;
@@ -69,21 +72,22 @@
     --accent: 215 25% 20%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 90% 60%;
+    /* Cork City Council red - slightly lighter for dark mode */
+    --destructive: 350 90% 50%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 215 25% 20%;
     --input: 215 25% 20%;
-    --ring: 210 100% 50%;
+    --ring: 202 100% 35%;
     
     --sidebar-background: 220 25% 12%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary: 202 100% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 215 25% 20%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 215 25% 20%;
-    --sidebar-ring: 210 100% 50%;
+    --sidebar-ring: 202 100% 35%;
   }
 }
 
@@ -145,3 +149,20 @@
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
 .stagger-5 { animation-delay: 0.5s; }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .animate-in-up {
+    animation-duration: 0.3s;
+  }
+  
+  .animate-in-left {
+    animation-duration: 0.3s;
+  }
+  
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+}

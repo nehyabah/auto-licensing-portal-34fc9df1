@@ -23,12 +23,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from '@/components/ui/badge';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { notifications } = useLicense();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const unreadNotifications = notifications.filter(
@@ -94,7 +96,14 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-semibold text-primary">AutoLicense</span>
+              <img 
+                src="https://res.cloudinary.com/dfjv35kht/image/upload/v1742396080/corkCity_nidn4e.png" 
+                alt="Cork City Council" 
+                className="h-8 mr-2" 
+              />
+              <span className={`text-xl font-semibold text-primary ${isMobile ? 'hidden' : 'block'}`}>
+                License Portal
+              </span>
             </Link>
           </div>
           

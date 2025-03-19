@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StatisticCardProps {
   title: string;
@@ -25,9 +26,11 @@ const StatisticCard: React.FC<StatisticCardProps> = ({
   className,
   footer
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <Card className={cn("transition-all duration-300 hover-lift", className)}>
-      <CardHeader className="pb-2">
+      <CardHeader className={cn("pb-2", isMobile && "p-4")}>
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {title}
@@ -37,8 +40,8 @@ const StatisticCard: React.FC<StatisticCardProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
+      <CardContent className={cn(isMobile && "px-4 py-2")}>
+        <div className={cn("font-bold", isMobile ? "text-xl" : "text-2xl")}>
           {value}
         </div>
         {description && (
@@ -63,7 +66,7 @@ const StatisticCard: React.FC<StatisticCardProps> = ({
         )}
       </CardContent>
       {footer && (
-        <CardFooter className="pt-0">
+        <CardFooter className={cn("pt-0", isMobile && "px-4 pb-4")}>
           {footer}
         </CardFooter>
       )}
