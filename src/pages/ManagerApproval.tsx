@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useLicense } from '@/context/LicenseContext';
 import LicenseCard from '@/components/LicenseCard';
@@ -36,7 +36,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ManagerApproval: React.FC = () => {
-  const { licenses, getPendingLicenses } = useLicense();
+  const { licenses, getPendingLicenses, updateLicenseStatus } = useLicense();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseType, setLicenseType] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -46,6 +46,11 @@ const ManagerApproval: React.FC = () => {
   
   const pendingLicenses = getPendingLicenses();
   const itemsPerPage = isMobile ? 4 : 6;
+  
+  // For debugging pending licenses
+  useEffect(() => {
+    console.log("ManagerApproval - Pending licenses:", pendingLicenses);
+  }, [pendingLicenses]);
   
   // Get all licenses for the full list view
   const allLicenses = licenses.filter(license => {
@@ -91,6 +96,15 @@ const ManagerApproval: React.FC = () => {
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
     }
+  };
+  
+  // Handle license status updates
+  const handleReject = (licenseId: string) => {
+    updateLicenseStatus(licenseId, 'rejected');
+  };
+  
+  const handleApprove = (licenseId: string) => {
+    updateLicenseStatus(licenseId, 'approved');
   };
   
   return (
@@ -240,20 +254,14 @@ const ManagerApproval: React.FC = () => {
                                         size="sm" 
                                         variant="outline"
                                         className="h-8 text-destructive border-destructive/20 hover:bg-destructive/10"
-                                        onClick={() => {
-                                          const { updateLicenseStatus } = useLicense();
-                                          updateLicenseStatus(license.id, 'rejected');
-                                        }}
+                                        onClick={() => handleReject(license.id)}
                                       >
                                         Reject
                                       </Button>
                                       <Button 
                                         size="sm"
                                         className="h-8"
-                                        onClick={() => {
-                                          const { updateLicenseStatus } = useLicense();
-                                          updateLicenseStatus(license.id, 'approved');
-                                        }}
+                                        onClick={() => handleApprove(license.id)}
                                       >
                                         Approve
                                       </Button>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const pendingLicenses = getPendingLicenses();
   const isManager = user?.role === 'manager' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
+  const isDriver = user?.role === 'driver';
   
   const today = new Date();
   const in30Days = addDays(today, 30);
@@ -39,6 +41,9 @@ const Dashboard = () => {
   const userLicenses = licenses.filter(license => license.driverName === user?.name);
   
   const activeDriversCount = drivers.filter(d => d.status === 'active').length;
+  
+  // For debugging pending licenses
+  console.log("Pending licenses:", pendingLicenses);
   
   return (
     <div className="min-h-screen flex flex-col bg-secondary/30">
@@ -158,7 +163,7 @@ const Dashboard = () => {
                     Manage Approvals
                   </Button>
                   
-                  <RegisterPointsDialog />
+                  {isDriver && <RegisterPointsDialog />}
                   
                   <Button 
                     variant="outline" 
