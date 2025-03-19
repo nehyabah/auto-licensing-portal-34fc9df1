@@ -12,13 +12,13 @@ import Navbar from '@/components/Navbar';
 import StatisticCard from '@/components/StatisticCard';
 import { useLicense } from '@/context/LicenseContext';
 import { differenceInDays, parseISO, isBefore, addDays } from 'date-fns';
-import { useDrivers } from '@/context/DriverContext'; // Add this import
+import { useDrivers } from '@/context/DriverContext';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { licenses, getPendingLicenses } = useLicense();
-  const { drivers } = useDrivers(); // Add this line
+  const { drivers } = useDrivers();
   
   const pendingLicenses = getPendingLicenses();
   const isManager = user?.role === 'manager' || user?.role === 'admin';
@@ -38,6 +38,9 @@ const Dashboard = () => {
     license.penaltyPoints >= 7
   );
   
+  // Filter to get user's licenses
+  const userLicenses = licenses.filter(license => license.driverName === user?.name);
+  
   return (
     <div className="min-h-screen flex flex-col bg-secondary/30">
       <Navbar />
@@ -54,38 +57,57 @@ const Dashboard = () => {
             </p>
           </div>
           
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatisticCard 
-              title="Total Licenses"
-              value={licenses.length}
-              description="Registered licenses"
-              icon={<FileInput className="h-5 w-5" />}
-            />
-            
-            <StatisticCard 
-              title="Pending Approvals"
-              value={pendingLicenses.length}
-              description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
-              icon={<CheckCheck className="h-5 w-5" />}
-              intent={pendingLicenses.length > 0 ? "warning" : "default"}
-            />
-            
-            <StatisticCard 
-              title="Expiring Soon"
-              value={expiringLicenses.length}
-              description="Licenses expiring in 30 days"
-              icon={<CalendarRange className="h-5 w-5" />}
-              intent={expiringLicenses.length > 0 ? "warning" : "default"}
-            />
-            
-            <StatisticCard 
-              title="Active Drivers"
-              value={drivers.filter(d => d.status === 'active').length}
-              description="Currently active drivers"
-              icon={<UserRound className="h-5 w-5" />}
-            />
-          </div>
+          {/* Quick Actions - Different for managers and drivers */}
+          {isManager ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatisticCard 
+                title="Total Licenses"
+                value={licenses.length}
+                description="Registered licenses"
+                icon={<FileInput className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Pending Approvals"
+                value={pendingLicenses.length}
+                description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
+                icon={<CheckCheck className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Expiring Soon"
+                value={expiringLicenses.length}
+                description="Licenses expiring in 30 days"
+                icon={<CalendarRange className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Active Drivers"
+                value={drivers.filter(d => d.status === 'active').length}
+                description="Currently active drivers"
+                icon={<UserRound className="h-5 w-5" />}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              <StatisticCard 
+                title="Your Licenses"
+                value={userLicenses.length}
+                description="Your registered licenses"
+                icon={<FileInput className="h-5 w-5" />}
+              />
+              
+              <StatisticCard 
+                title="Expiring Soon"
+                value={userLicenses.filter(license => {
+                  const expiryDate = parseISO(license.expiryDate);
+                  return !isBefore(expiryDate, today) && isBefore(expiryDate, in30Days);
+                }).length}
+                description="Your licenses expiring in 30 days"
+                icon={<CalendarRange className="h-5 w-5" />}
+              />
+            </div>
+          )}
           
           {/* Manager/Admin specific content */}
           {isManager && (
