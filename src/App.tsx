@@ -43,8 +43,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <DriverProvider>
-          <LicenseProvider>
+        <LicenseProvider>
+          <DriverProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -128,8 +128,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-          </LicenseProvider>
-        </DriverProvider>
+          </DriverProvider>
+        </LicenseProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
