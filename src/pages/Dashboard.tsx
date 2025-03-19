@@ -86,6 +86,17 @@ const Dashboard = () => {
             </div>
           )}
           
+          {isManager && highPointLicenses.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>High Risk Drivers</AlertTitle>
+              <AlertDescription>
+                {highPointLicenses.length} driver{highPointLicenses.length !== 1 ? 's' : ''} with 7 or more penalty points. 
+                These drivers may require additional monitoring.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {isManager && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="md:col-span-2">
@@ -170,17 +181,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          )}
-          
-          {isManager && highPointLicenses.length > 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>High Risk Drivers</AlertTitle>
-              <AlertDescription>
-                {highPointLicenses.length} driver{highPointLicenses.length !== 1 ? 's' : ''} with 7 or more penalty points. 
-                These drivers may require additional monitoring.
-              </AlertDescription>
-            </Alert>
           )}
           
           {!isManager && (
