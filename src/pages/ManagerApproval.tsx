@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useLicense } from '@/context/LicenseContext';
@@ -362,20 +361,14 @@ const ManagerApproval: React.FC = () => {
                                           size="sm" 
                                           variant="outline"
                                           className="h-8 text-destructive border-destructive/20 hover:bg-destructive/10"
-                                          onClick={() => {
-                                            const { updateLicenseStatus } = useLicense();
-                                            updateLicenseStatus(license.id, 'rejected');
-                                          }}
+                                          onClick={() => handleReject(license.id)}
                                         >
                                           Reject
                                         </Button>
                                         <Button 
                                           size="sm"
                                           className="h-8"
-                                          onClick={() => {
-                                            const { updateLicenseStatus } = useLicense();
-                                            updateLicenseStatus(license.id, 'approved');
-                                          }}
+                                          onClick={() => handleApprove(license.id)}
                                         >
                                           Approve
                                         </Button>
@@ -452,3 +445,4 @@ const ManagerApproval: React.FC = () => {
 };
 
 export default ManagerApproval;
+

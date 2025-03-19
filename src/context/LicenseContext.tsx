@@ -216,30 +216,16 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
   useEffect(() => {
-    // Load data from localStorage or use initial data
-    const savedLicenses = localStorage.getItem('licenses');
-    const savedNotifications = localStorage.getItem('notifications');
+    localStorage.removeItem('licenses');
+    localStorage.removeItem('notifications');
     
-    // Only use localStorage if it has valid data, otherwise use initial data
-    if (savedLicenses && JSON.parse(savedLicenses).length > 0) {
-      setLicenses(JSON.parse(savedLicenses));
-    } else {
-      // Force reset to initial data if localStorage is empty or invalid
-      localStorage.setItem('licenses', JSON.stringify(initialLicenses));
-    }
+    localStorage.setItem('licenses', JSON.stringify(initialLicenses));
+    localStorage.setItem('notifications', JSON.stringify(initialNotifications));
     
-    if (savedNotifications && JSON.parse(savedNotifications).length > 0) {
-      setNotifications(JSON.parse(savedNotifications));
-    } else {
-      localStorage.setItem('notifications', JSON.stringify(initialNotifications));
-    }
-    
-    // For debugging
     console.log("Initial licenses loaded:", initialLicenses.length);
     console.log("Pending count:", initialLicenses.filter(l => l.status === 'pending').length);
   }, []);
 
-  // Save to localStorage whenever data changes
   useEffect(() => {
     if (licenses.length > 0) {
       localStorage.setItem('licenses', JSON.stringify(licenses));
@@ -265,7 +251,6 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     setLicenses(prev => [...prev, newLicense]);
     
-    // Create notification for managers
     const newNotification: Notification = {
       id: Date.now().toString(),
       userId: "2", // Hardcoded for manager in this demo
@@ -292,10 +277,8 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       )
     );
     
-    // Find the license to get driver info
     const license = licenses.find(l => l.id === licenseId);
     if (license) {
-      // Notify the driver about the status change
       const newNotification: Notification = {
         id: Date.now().toString(),
         userId: license.driverId,
