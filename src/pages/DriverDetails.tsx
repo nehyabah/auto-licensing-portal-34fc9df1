@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDrivers } from '@/context/DriverContext';
@@ -269,7 +270,7 @@ const DriverDetails: React.FC = () => {
                   
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium">License Image</h3>
-                    <div className="rounded-md border overflow-hidden bg-white">
+                    <div className="rounded-md border overflow-hidden">
                       <img 
                         src={driver.licenseImageUrl || "https://res.cloudinary.com/dfjv35kht/image/upload/v1742397639/Driver_licence_number_ezde8n.png"} 
                         alt="Driver's License" 
