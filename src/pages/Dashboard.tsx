@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -38,6 +37,8 @@ const Dashboard = () => {
   );
   
   const userLicenses = licenses.filter(license => license.driverName === user?.name);
+  
+  const activeDriversCount = drivers.filter(d => d.status === 'active').length;
   
   return (
     <div className="min-h-screen flex flex-col bg-secondary/30">
@@ -79,7 +80,7 @@ const Dashboard = () => {
               
               <StatisticCard 
                 title="Active Drivers"
-                value={drivers.filter(d => d.status === 'active').length}
+                value={activeDriversCount}
                 description="Currently active drivers"
                 icon={<UserRound className="h-5 w-5" />}
               />
