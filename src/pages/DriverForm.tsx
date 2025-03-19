@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from "sonner";
+import { ArrowLeft, UploadCloud } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -53,6 +54,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const DriverForm = () => {
   const [isMounted, setIsMounted] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { drivers, addDriver, updateDriver, getDriverById } = useDrivers();
@@ -60,7 +62,10 @@ const DriverForm = () => {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (driver?.imageUrl) {
+      setImagePreview(driver.imageUrl);
+    }
+  }, [driver]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -83,6 +88,24 @@ const DriverForm = () => {
   });
 
   const isLoading = form.formState.isSubmitting;
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Read the file and convert it to a data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        form.setValue('imageUrl', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGoBack = () => {
+    navigate('/admin/drivers');
+  };
 
   const handleSubmit = (data: FormData) => {
     try {
@@ -115,7 +138,47 @@ const DriverForm = () => {
 
   return (
     <div className="container mx-auto max-w-2xl p-4">
-      <h1 className="text-2xl font-bold mb-4">{id ? 'Edit Driver' : 'Add Driver'}</h1>
+      <div className="flex items-center mb-6">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleGoBack} 
+          className="mr-2"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
+        </Button>
+        <h1 className="text-2xl font-bold">{id ? 'Edit Driver' : 'Add Driver'}</h1>
+      </div>
+
+      <div className="mb-6">
+        <div className="flex flex-col items-center mb-4">
+          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 mb-2 flex items-center justify-center border">
+            {imagePreview ? (
+              <img 
+                src={imagePreview} 
+                alt="Driver preview" 
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <UploadCloud className="h-12 w-12 text-gray-400" />
+            )}
+          </div>
+          <Label htmlFor="image-upload" className="cursor-pointer">
+            <span className="text-sm text-blue-600 hover:underline">
+              {imagePreview ? 'Change image' : 'Upload image'}
+            </span>
+            <Input 
+              id="image-upload" 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleImageChange}
+            />
+          </Label>
+        </div>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           <FormField
@@ -314,9 +377,14 @@ const DriverForm = () => {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={isLoading}>
-            {id ? 'Update Driver' : 'Add Driver'}
-          </Button>
+          <div className="flex justify-between pt-4">
+            <Button type="button" variant="outline" onClick={handleGoBack}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {id ? 'Update Driver' : 'Add Driver'}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
