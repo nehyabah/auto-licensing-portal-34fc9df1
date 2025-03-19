@@ -436,7 +436,7 @@ const ManagerApproval: React.FC = () => {
                 </Pagination>
               </div>
             )}
-          </div>
+          </Tabs>
         </div>
       </main>
     </div>
