@@ -57,10 +57,20 @@ export function RegisterPointsDialog() {
       return;
     }
     
-    const driver = drivers.find(d => d.email === user.email);
+    // Find driver by matching the user email with the driver email
+    // Log user info for debugging
+    console.log("Current user:", user);
+    console.log("All drivers:", drivers);
+    
+    // We need to find the driver that matches the current user
+    // The email could be in different formats (lowercase, uppercase), so normalize them
+    const driver = drivers.find(d => 
+      d.email.toLowerCase() === user.email.toLowerCase()
+    );
     
     if (!driver) {
-      toast.error("Driver record not found");
+      toast.error("Driver record not found for your account");
+      console.log("No driver found for email:", user.email);
       return;
     }
     
