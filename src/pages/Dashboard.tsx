@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +12,7 @@ import StatisticCard from '@/components/StatisticCard';
 import { useLicense } from '@/context/LicenseContext';
 import { differenceInDays, parseISO, isBefore, addDays } from 'date-fns';
 import { useDrivers } from '@/context/DriverContext';
+import { RegisterPointsDialog } from '@/components/RegisterPointsDialog';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -24,7 +24,6 @@ const Dashboard = () => {
   const isManager = user?.role === 'manager' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
   
-  // Calculate expiring licenses in next 30 days
   const today = new Date();
   const in30Days = addDays(today, 30);
   
@@ -33,12 +32,10 @@ const Dashboard = () => {
     return !isBefore(expiryDate, today) && isBefore(expiryDate, in30Days);
   });
   
-  // High penalty point licenses
   const highPointLicenses = licenses.filter(license => 
     license.penaltyPoints >= 7
   );
   
-  // Filter to get user's licenses
   const userLicenses = licenses.filter(license => license.driverName === user?.name);
   
   return (
@@ -47,7 +44,6 @@ const Dashboard = () => {
       
       <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         <div className="flex flex-col space-y-8 animate-in-up">
-          {/* Welcome and header */}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Dashboard
@@ -57,62 +53,38 @@ const Dashboard = () => {
             </p>
           </div>
           
-          {/* Quick Actions - Different for managers and drivers */}
-          {isManager ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatisticCard 
-                title="Total Licenses"
-                value={licenses.length}
-                description="Registered licenses"
-                icon={<FileInput className="h-5 w-5" />}
-              />
-              
-              <StatisticCard 
-                title="Pending Approvals"
-                value={pendingLicenses.length}
-                description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
-                icon={<CheckCheck className="h-5 w-5" />}
-              />
-              
-              <StatisticCard 
-                title="Expiring Soon"
-                value={expiringLicenses.length}
-                description="Licenses expiring in 30 days"
-                icon={<CalendarRange className="h-5 w-5" />}
-              />
-              
-              <StatisticCard 
-                title="Active Drivers"
-                value={drivers.filter(d => d.status === 'active').length}
-                description="Currently active drivers"
-                icon={<UserRound className="h-5 w-5" />}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-              <StatisticCard 
-                title="Your Licenses"
-                value={userLicenses.length}
-                description="Your registered licenses"
-                icon={<FileInput className="h-5 w-5" />}
-              />
-              
-              <StatisticCard 
-                title="Expiring Soon"
-                value={userLicenses.filter(license => {
-                  const expiryDate = parseISO(license.expiryDate);
-                  return !isBefore(expiryDate, today) && isBefore(expiryDate, in30Days);
-                }).length}
-                description="Your licenses expiring in 30 days"
-                icon={<CalendarRange className="h-5 w-5" />}
-              />
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatisticCard 
+              title="Total Licenses"
+              value={licenses.length}
+              description="Registered licenses"
+              icon={<FileInput className="h-5 w-5" />}
+            />
+            
+            <StatisticCard 
+              title="Pending Approvals"
+              value={pendingLicenses.length}
+              description={`License${pendingLicenses.length !== 1 ? 's' : ''} awaiting review`}
+              icon={<CheckCheck className="h-5 w-5" />}
+            />
+            
+            <StatisticCard 
+              title="Expiring Soon"
+              value={expiringLicenses.length}
+              description="Licenses expiring in 30 days"
+              icon={<CalendarRange className="h-5 w-5" />}
+            />
+            
+            <StatisticCard 
+              title="Active Drivers"
+              value={drivers.filter(d => d.status === 'active').length}
+              description="Currently active drivers"
+              icon={<UserRound className="h-5 w-5" />}
+            />
+          </div>
           
-          {/* Manager/Admin specific content */}
           {isManager && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Pending Approvals Card */}
               <Card className="md:col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xl">Recent License Submissions</CardTitle>
@@ -156,7 +128,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Quick Actions Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-xl">Quick Actions</CardTitle>
@@ -171,6 +142,8 @@ const Dashboard = () => {
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Manage Approvals
                   </Button>
+                  
+                  <RegisterPointsDialog />
                   
                   <Button 
                     variant="outline" 
@@ -196,7 +169,6 @@ const Dashboard = () => {
             </div>
           )}
           
-          {/* High Risk Drivers Alert - Show only to managers and admins */}
           {isManager && highPointLicenses.length > 0 && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -208,10 +180,8 @@ const Dashboard = () => {
             </Alert>
           )}
           
-          {/* Driver specific content */}
           {!isManager && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* License Status Card */}
               <Card className="md:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-xl">Your License Status</CardTitle>
@@ -293,7 +263,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Quick Actions Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-xl">Quick Actions</CardTitle>

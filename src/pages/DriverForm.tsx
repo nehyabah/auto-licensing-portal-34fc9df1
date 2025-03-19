@@ -1,474 +1,324 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format, parseISO, isValid } from 'date-fns';
-import Navbar from '@/components/Navbar';
-import { useDrivers, Driver } from '@/context/DriverContext';
+import { z } from 'zod';
+import { toast } from "sonner";
+
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { 
-  Form, FormControl, FormField, FormItem, 
-  FormLabel, FormMessage, FormDescription 
-} from '@/components/ui/form';
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { 
-  ArrowLeft, Save, Image, CalendarIcon, UserPlus 
-} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Calendar } from '@/components/ui/calendar';
-import { 
-  Popover, PopoverContent, PopoverTrigger 
-} from '@/components/ui/popover';
+import { Driver, useDrivers } from '@/context/DriverContext';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-// Form schema
-const driverFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  phone: z.string().min(7, { message: "Please enter a valid phone number" }),
-  address: z.string().min(5, { message: "Address must be at least 5 characters" }),
-  licenseNumber: z.string().min(3, { message: "License number is required" }),
-  licenseType: z.string({ required_error: "License type is required" }),
-  licenseExpiryDate: z.date({ required_error: "Expiry date is required" }),
-  penaltyPoints: z.coerce.number().min(0).max(12),
-  employeeId: z.string().min(2, { message: "Employee ID is required" }),
-  department: z.string({ required_error: "Department is required" }),
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: 'Name must be at least 2 characters.',
+  }),
+  email: z.string().email({
+    message: 'Invalid email address.',
+  }),
+  phone: z.string().min(8, {
+    message: 'Phone number must be at least 8 characters.',
+  }),
+  address: z.string().min(5, {
+    message: 'Address must be at least 5 characters.',
+  }),
+  licenseNumber: z.string().min(5, {
+    message: 'License number must be at least 5 characters.',
+  }),
+  licenseType: z.string().min(2, {
+    message: 'License type must be at least 2 characters.',
+  }),
+  licenseExpiryDate: z.date(),
+  penaltyPoints: z.number().min(0, {
+    message: 'Penalty points must be at least 0.',
+  }).max(12, {
+    message: 'Penalty points cannot be more than 12.',
+  }),
+  employeeId: z.string().min(3, {
+    message: 'Employee ID must be at least 3 characters.',
+  }),
+  department: z.string().min(3, {
+    message: 'Department must be at least 3 characters.',
+  }),
   imageUrl: z.string().optional(),
-  status: z.enum(["active", "suspended", "inactive"]),
+  status: z.enum(['active', 'suspended', 'inactive']),
   notes: z.string().optional(),
 });
 
-type DriverFormValues = z.infer<typeof driverFormSchema>;
+type FormData = z.infer<typeof formSchema>;
 
 const DriverForm = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const navigate = useNavigate();
-  const { id } = useParams();
-  const { addDriver, updateDriver, getDriverById } = useDrivers();
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
-  const isEditMode = !!id;
-  const existingDriver = isEditMode ? getDriverById(id) : undefined;
-  
-  // Initialize form
-  const form = useForm<DriverFormValues>({
-    resolver: zodResolver(driverFormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      licenseNumber: "",
-      licenseType: "",
-      licenseExpiryDate: new Date(),
-      penaltyPoints: 0,
-      employeeId: "",
-      department: "",
-      imageUrl: "",
-      status: "active",
-      notes: "",
-    },
-  });
-  
-  // Set form values if in edit mode
+  const { id } = useParams<{ id: string }>();
+  const { drivers, addDriver, updateDriver, getDriverById } = useDrivers();
+  const driver = id ? getDriverById(id) : undefined;
+
   useEffect(() => {
-    if (isEditMode && existingDriver) {
-      const expiryDate = parseISO(existingDriver.licenseExpiryDate);
-      
-      form.reset({
-        ...existingDriver,
-        licenseExpiryDate: isValid(expiryDate) ? expiryDate : new Date(),
-      });
-      
-      if (existingDriver.imageUrl) {
-        setImagePreview(existingDriver.imageUrl);
-      }
-    }
-  }, [existingDriver, form, isEditMode]);
-  
-  // Submit handler
-  const onSubmit = (data: DriverFormValues) => {
+    setIsMounted(true);
+  }, []);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: driver?.name || '',
+      email: driver?.email || '',
+      phone: driver?.phone || '',
+      address: driver?.address || '',
+      licenseNumber: driver?.licenseNumber || '',
+      licenseType: driver?.licenseType || '',
+      licenseExpiryDate: driver?.licenseExpiryDate ? new Date(driver.licenseExpiryDate) : new Date(),
+      penaltyPoints: driver?.penaltyPoints || 0,
+      employeeId: driver?.employeeId || '',
+      department: driver?.department || '',
+      imageUrl: driver?.imageUrl || '',
+      status: driver?.status || 'active',
+      notes: driver?.notes || '',
+    },
+    mode: 'onChange',
+  });
+
+  const isLoading = form.formState.isSubmitting;
+
+  const handleSubmit = (data: FormData) => {
     try {
-      if (isEditMode && existingDriver) {
-        updateDriver(existingDriver.id, data);
-        toast.success("Driver updated successfully");
+      // Convert Date to string format for licenseExpiryDate if it exists
+      const driverData: Partial<Driver> = {
+        ...data,
+        licenseExpiryDate: data.licenseExpiryDate ? data.licenseExpiryDate.toISOString().split('T')[0] : undefined
+      };
+      
+      if (id) {
+        updateDriver(id, driverData);
+        navigate(`/admin/drivers/${id}`);
       } else {
-        addDriver(data);
-        toast.success("Driver added successfully");
+        // Add a new driver - need to ensure all required fields are present
+        // Cast partial driver data to full driver data (minus id and createdAt)
+        const newDriverData = driverData as Omit<Driver, 'id' | 'createdAt'>;
+        addDriver(newDriverData);
+        navigate('/admin/drivers');
       }
-      navigate('/admin/drivers');
+      toast.success(`Driver ${data.name} ${id ? 'updated' : 'added'} successfully`);
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
-      console.error(error);
+      console.error('Error saving driver:', error);
+      toast.error('Failed to save driver information');
     }
   };
-  
-  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    form.setValue('imageUrl', url);
-    setImagePreview(url);
-  };
-  
+
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-secondary/30">
-      <Navbar />
-      
-      <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
-        <div className="flex flex-col space-y-8 animate-in-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/admin/drivers')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {isEditMode ? 'Edit Driver' : 'Add New Driver'}
-              </h1>
-            </div>
-            
-            <Button 
-              type="submit"
-              form="driver-form"
-              className="gap-2"
-            >
-              {isEditMode ? (
-                <>
-                  <Save className="h-4 w-4" />
-                  Save Changes
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4" />
-                  Add Driver
-                </>
-              )}
-            </Button>
-          </div>
-          
-          <Form {...form}>
-            <form 
-              id="driver-form" 
-              onSubmit={form.handleSubmit(onSubmit)} 
-              className="space-y-8 bg-card rounded-lg border p-6"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium">Personal Information</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter driver's full name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+    <div className="container mx-auto max-w-2xl p-4">
+      <h1 className="text-2xl font-bold mb-4">{id ? 'Edit Driver' : 'Add Driver'}</h1>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Driver Name" {...field} />
+                </FormControl>
+                <FormDescription>This is the driver's full name.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="mail@example.com" {...field} />
+                </FormControl>
+                <FormDescription>This is the driver's email address.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input placeholder="083-000-0000" {...field} />
+                </FormControl>
+                <FormDescription>This is the driver's phone number.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="123 Main Street, Anytown" {...field} />
+                </FormControl>
+                <FormDescription>This is the driver's home address.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="licenseNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>License Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="License Number" {...field} />
+                </FormControl>
+                <FormDescription>This is the driver's license number.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="licenseType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>License Type</FormLabel>
+                <FormControl>
+                  <Input placeholder="License Type" {...field} />
+                </FormControl>
+                <FormDescription>e.g., Class A, Class B</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="licenseExpiryDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>License Expiry Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value ? field.value.toISOString().split('T')[0] : ''} onChange={(e) => field.onChange(new Date(e.target.value))} />
+                </FormControl>
+                <FormDescription>The date the driver's license expires.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="penaltyPoints"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Penalty Points</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    {...field}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="Email address" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </FormControl>
+                <FormDescription>Current penalty points on the driver's license.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="employeeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Employee ID</FormLabel>
+                <FormControl>
+                  <Input placeholder="Employee ID" {...field} />
+                </FormControl>
+                <FormDescription>The driver's employee identification number.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="department"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Department</FormLabel>
+                <FormControl>
+                  <Input placeholder="Department" {...field} />
+                </FormControl>
+                <FormDescription>The department the driver belongs to.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="imageUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image URL</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="https://example.com/image.jpg"
+                    {...field}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Phone number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </FormControl>
+                <FormDescription>URL to the driver's image.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <FormControl>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" {...field}>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </FormControl>
+                <FormDescription>The current status of the driver.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Additional notes about the driver"
+                    {...field}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Full address" 
-                            className="resize-none" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Profile Image URL</FormLabel>
-                        <FormControl>
-                          <div className="space-y-2">
-                            <Input 
-                              placeholder="Profile image URL" 
-                              value={field.value || ''}
-                              onChange={handleImageUrlChange}
-                            />
-                            {imagePreview && (
-                              <div className="rounded-md overflow-hidden w-24 h-24 border">
-                                <img 
-                                  src={imagePreview} 
-                                  alt="Profile preview" 
-                                  className="w-full h-full object-cover"
-                                  onError={() => setImagePreview(null)}
-                                />
-                              </div>
-                            )}
-                            {!imagePreview && (
-                              <div className="rounded-md w-24 h-24 border flex items-center justify-center bg-secondary/40">
-                                <Image className="h-8 w-8 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Enter a URL for the driver's profile image
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium">Work & License Details</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="employeeId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Employee ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Employee ID" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="department"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Department</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select department" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Waste Management">Waste Management</SelectItem>
-                            <SelectItem value="Parks and Recreation">Parks and Recreation</SelectItem>
-                            <SelectItem value="Road Maintenance">Road Maintenance</SelectItem>
-                            <SelectItem value="Water Services">Water Services</SelectItem>
-                            <SelectItem value="Public Transport">Public Transport</SelectItem>
-                            <SelectItem value="Administration">Administration</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Separator className="my-4" />
-                  
-                  <FormField
-                    control={form.control}
-                    name="licenseNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>License Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="License number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="licenseType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>License Type</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select license type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Class B">Class B (Car)</SelectItem>
-                            <SelectItem value="Class C">Class C (Truck)</SelectItem>
-                            <SelectItem value="Class D">Class D (Bus)</SelectItem>
-                            <SelectItem value="Class EC">Class EC (Heavy Goods)</SelectItem>
-                            <SelectItem value="Class W">Class W (Work Vehicle)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="licenseExpiryDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>License Expiry Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="penaltyPoints"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Penalty Points (0-12)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={0} 
-                            max={12} 
-                            placeholder="Penalty points" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Driver Status</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="suspended">Suspended</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Additional notes about the driver" 
-                        className="min-h-[100px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Include any relevant information about the driver that might be useful.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        </div>
-      </main>
+                </FormControl>
+                <FormDescription>Any additional information about the driver.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {id ? 'Update Driver' : 'Add Driver'}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 };
