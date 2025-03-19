@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -173,8 +174,8 @@ const Dashboard = () => {
             </div>
           )}
           
-          {/* High Risk Drivers Alert */}
-          {highPointLicenses.length > 0 && (
+          {/* High Risk Drivers Alert - Show only to managers and admins */}
+          {isManager && highPointLicenses.length > 0 && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>High Risk Drivers</AlertTitle>
