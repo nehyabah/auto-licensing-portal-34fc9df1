@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { License, useLicense } from '@/context/LicenseContext';
-import { CalendarClock, AlertCircle, Award, Clock, Eye } from 'lucide-react';
+import { CalendarClock, AlertCircle, Award, Clock, Eye, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -13,11 +13,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 interface LicenseCardProps {
   license: License;
   showActions?: boolean;
+  variant?: 'card' | 'list-item';
 }
 
 const LicenseCard: React.FC<LicenseCardProps> = ({ 
   license,
-  showActions = false
+  showActions = false,
+  variant = 'card'
 }) => {
   const { updateLicenseStatus } = useLicense();
   const { user } = useAuth();
@@ -58,6 +60,171 @@ const LicenseCard: React.FC<LicenseCardProps> = ({
     setShowPreview(true);
   };
 
+  if (variant === 'list-item') {
+    return (
+      <>
+        <div 
+          className={cn(
+            "flex items-center justify-between p-4 rounded-lg hover:bg-secondary/50 transition-all duration-200 border",
+            isHighPenalty && "border-destructive/40",
+            isNearExpiry && !isHighPenalty && "border-amber-500/40"
+          )}
+        >
+          <div className="flex flex-col gap-0.5 flex-grow">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{license.driverName}</span>
+              <Badge className={cn("font-normal capitalize text-xs", getStatusColor(license.status))}>
+                {license.status}
+              </Badge>
+              {isHighPenalty && (
+                <Badge variant="destructive" className="text-xs">
+                  High Points
+                </Badge>
+              )}
+              {isNearExpiry && !isHighPenalty && (
+                <Badge variant="outline" className="text-xs text-amber-600 border-amber-400">
+                  Expiring Soon
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>{license.licenseType} License</span>
+              <span>#{license.licenseNumber}</span>
+              <span>Expires: {format(parseISO(license.expiryDate), 'PP')}</span>
+              <span className={cn(isHighPenalty && "text-destructive")}>
+                {license.penaltyPoints}/12 points
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {showActions && isManager && isPending && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={openPreview}
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="h-8 text-destructive border-destructive/20 hover:bg-destructive/10"
+                  onClick={handleReject}
+                >
+                  Reject
+                </Button>
+                <Button 
+                  size="sm"
+                  className="h-8"
+                  onClick={handleApprove}
+                >
+                  Approve
+                </Button>
+              </>
+            )}
+            {!showActions && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={openPreview}
+                className="flex items-center gap-1"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* License Preview Dialog */}
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>License Preview</DialogTitle>
+              <DialogDescription>
+                Reviewing {license.driverName}'s {license.licenseType} License ({license.licenseNumber})
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="rounded-lg overflow-hidden border">
+                <img 
+                  src={licenseImageUrl} 
+                  alt="License" 
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-sm">Driver Information</h3>
+                  <div className="bg-secondary/50 p-3 rounded-md space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Name:</span>
+                      <span className="text-sm font-medium">{license.driverName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">License #:</span>
+                      <span className="text-sm font-medium">{license.licenseNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">License Type:</span>
+                      <span className="text-sm font-medium">{license.licenseType}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium text-sm">License Details</h3>
+                  <div className="bg-secondary/50 p-3 rounded-md space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Expiry Date:</span>
+                      <span className="text-sm font-medium">{format(parseISO(license.expiryDate), 'PPP')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Penalty Points:</span>
+                      <span className={cn(
+                        "text-sm font-medium",
+                        isHighPenalty && "text-destructive"
+                      )}>
+                        {license.penaltyPoints} / 12
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Submission Date:</span>
+                      <span className="text-sm font-medium">{format(parseISO(license.createdAt), 'PPP')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {isPending && isManager && (
+              <DialogFooter className="space-x-2">
+                <Button 
+                  onClick={handleReject} 
+                  variant="outline" 
+                  className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                >
+                  Reject License
+                </Button>
+                <Button 
+                  onClick={handleApprove}
+                >
+                  Approve License
+                </Button>
+              </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  // Original card view implementation
   return (
     <>
       <Card className={cn(
