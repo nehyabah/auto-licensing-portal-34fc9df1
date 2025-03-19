@@ -125,6 +125,30 @@ const initialLicenses: License[] = [
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
     updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   },
+  {
+    id: "8",
+    driverId: "10",
+    driverName: "Karen Williams",
+    licenseType: "HGV",
+    licenseNumber: "H98765432",
+    expiryDate: new Date(Date.now() + 200 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    penaltyPoints: 2,
+    status: "pending",
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "9",
+    driverId: "11",
+    driverName: "James Wilson",
+    licenseType: "Car",
+    licenseNumber: "C44556677",
+    expiryDate: new Date(Date.now() + 300 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    penaltyPoints: 1,
+    status: "pending",
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
 ];
 
 const initialNotifications: Notification[] = [

@@ -40,7 +40,8 @@ const Dashboard = () => {
   
   const userLicenses = licenses.filter(license => license.driverName === user?.name);
   
-  const activeDriversCount = drivers.filter(d => d.status === 'active').length;
+  // Fixed active drivers count to 600 as requested
+  const activeDriversCount = 600;
   
   // For debugging pending licenses
   console.log("Pending licenses:", pendingLicenses);
