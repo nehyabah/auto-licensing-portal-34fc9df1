@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -19,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, Save, Image, CalendarIcon, UserPlus, License 
+  ArrowLeft, Save, Image, CalendarIcon, UserPlus, License, FileText 
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
