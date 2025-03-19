@@ -43,6 +43,11 @@ export function RegisterPointsDialog() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   
+  // Hide this component from administrators
+  if (user?.role === 'admin') {
+    return null;
+  }
+  
   const form = useForm<PointsFormValues>({
     resolver: zodResolver(pointsSchema),
     defaultValues: {

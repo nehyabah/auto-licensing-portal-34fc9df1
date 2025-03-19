@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "sonner";
 import { useAuth } from './AuthContext';
@@ -40,7 +39,7 @@ interface LicenseContextType {
 
 const LicenseContext = createContext<LicenseContextType | undefined>(undefined);
 
-// Sample data
+// Sample data with more pending licenses
 const initialLicenses: License[] = [
   {
     id: "1",
@@ -78,6 +77,54 @@ const initialLicenses: License[] = [
     createdAt: "2023-06-28T16:20:00Z",
     updatedAt: "2023-06-28T16:20:00Z",
   },
+  {
+    id: "4",
+    driverId: "6",
+    driverName: "Sarah Connor",
+    licenseType: "Motorcycle",
+    licenseNumber: "M12345678",
+    expiryDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 120 days from now
+    penaltyPoints: 0,
+    status: "pending",
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "5",
+    driverId: "7",
+    driverName: "Robert Chen",
+    licenseType: "Commercial",
+    licenseNumber: "C87654321",
+    expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 180 days from now
+    penaltyPoints: 1,
+    status: "pending",
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "6",
+    driverId: "8",
+    driverName: "Emily Rivera",
+    licenseType: "HGV",
+    licenseNumber: "H55566677",
+    expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
+    penaltyPoints: 3,
+    status: "pending",
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "7",
+    driverId: "9",
+    driverName: "David Kim",
+    licenseType: "PSV",
+    licenseNumber: "P33344455",
+    expiryDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 150 days from now
+    penaltyPoints: 0,
+    status: "pending",
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+  },
 ];
 
 const initialNotifications: Notification[] = [
@@ -104,6 +151,38 @@ const initialNotifications: Notification[] = [
     type: "warning",
     read: false,
     createdAt: "2023-05-21T11:35:00Z",
+  },
+  {
+    id: "4",
+    userId: "2", // Manager
+    message: "New license submission from Sarah Connor requires approval",
+    type: "info",
+    read: false,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "5",
+    userId: "2", // Manager
+    message: "New license submission from Robert Chen requires approval",
+    type: "info",
+    read: false,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "6",
+    userId: "2", // Manager
+    message: "New license submission from Emily Rivera requires approval",
+    type: "info",
+    read: false,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "7",
+    userId: "2", // Manager
+    message: "New license submission from David Kim requires approval",
+    type: "info",
+    read: false,
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
