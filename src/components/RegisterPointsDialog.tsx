@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { UserPen } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useDrivers } from '@/context/DriverContext';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 import {
@@ -28,7 +29,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 const pointsSchema = z.object({
-  driverId: z.string().min(1, "Driver is required"),
   points: z.coerce
     .number()
     .min(1, "Points must be at least 1")
@@ -40,22 +40,27 @@ type PointsFormValues = z.infer<typeof pointsSchema>;
 
 export function RegisterPointsDialog() {
   const { drivers, updateDriver } = useDrivers();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   
   const form = useForm<PointsFormValues>({
     resolver: zodResolver(pointsSchema),
     defaultValues: {
-      driverId: "",
       points: 1,
       reason: "",
     },
   });
 
   function onSubmit(data: PointsFormValues) {
-    const driver = drivers.find(d => d.id === data.driverId);
+    if (!user) {
+      toast.error("You must be logged in to report penalty points");
+      return;
+    }
+    
+    const driver = drivers.find(d => d.email === user.email);
     
     if (!driver) {
-      toast.error("Driver not found");
+      toast.error("Driver record not found");
       return;
     }
     
@@ -63,7 +68,7 @@ export function RegisterPointsDialog() {
     const exceededLimit = newPenaltyPoints > 12;
     
     // Update the driver with new penalty points
-    updateDriver(data.driverId, {
+    updateDriver(driver.id, {
       penaltyPoints: exceededLimit ? 12 : newPenaltyPoints,
       notes: driver.notes 
         ? `${driver.notes}\n\n${new Date().toLocaleDateString()}: ${data.points} points added - ${data.reason}`
@@ -71,11 +76,11 @@ export function RegisterPointsDialog() {
     });
     
     if (exceededLimit) {
-      toast.warning(`${driver.name} now exceeds the maximum penalty points. Consider suspending their license.`);
+      toast.warning(`You now exceed the maximum penalty points. Consider consulting your manager.`);
     } else if (newPenaltyPoints >= 7) {
-      toast.warning(`${driver.name} now has ${newPenaltyPoints} penalty points. This is considered high risk.`);
+      toast.warning(`You now have ${newPenaltyPoints} penalty points. This is considered high risk.`);
     } else {
-      toast.success(`Added ${data.points} penalty points to ${driver.name}`);
+      toast.success(`Added ${data.points} penalty points to your record`);
     }
     
     form.reset();
@@ -89,42 +94,19 @@ export function RegisterPointsDialog() {
           variant="outline" 
           className="w-full justify-start"
         >
-          <UserPen className="mr-2 h-4 w-4" />
-          Register Penalty Points
+          <AlertCircle className="mr-2 h-4 w-4" />
+          Report Penalty Points
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Register Penalty Points</DialogTitle>
+          <DialogTitle>Report Penalty Points</DialogTitle>
           <DialogDescription>
-            Add penalty points to a driver's record. Points accumulate and may lead to license suspension.
+            Report penalty points that you've received on your license. It's important to keep your record up to date.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="driverId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Driver</FormLabel>
-                  <FormControl>
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                      {...field}
-                    >
-                      <option value="" disabled>Select a driver</option>
-                      {drivers.map((driver) => (
-                        <option key={driver.id} value={driver.id}>
-                          {driver.name} - Current points: {driver.penaltyPoints}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="points"
@@ -145,7 +127,7 @@ export function RegisterPointsDialog() {
                 <FormItem>
                   <FormLabel>Reason</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Explain why points are being added" />
+                    <Textarea {...field} placeholder="Explain why you received these points" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +137,7 @@ export function RegisterPointsDialog() {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Register Points</Button>
+              <Button type="submit">Submit Points</Button>
             </div>
           </form>
         </Form>
