@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, Save, Image, CalendarIcon, UserPlus 
+  ArrowLeft, Save, Image, CalendarIcon, UserPlus, License 
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -42,17 +42,21 @@ const driverFormSchema = z.object({
   employeeId: z.string().min(2, { message: "Employee ID is required" }),
   department: z.string({ required_error: "Department is required" }),
   imageUrl: z.string().optional(),
+  licenseImageUrl: z.string().optional(),
   status: z.enum(["active", "suspended", "inactive"]),
   notes: z.string().optional(),
 });
 
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
+const DEFAULT_LICENSE_IMAGE = "https://res.cloudinary.com/dfjv35kht/image/upload/v1742397639/Driver_licence_number_ezde8n.png";
+
 const DriverForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { addDriver, updateDriver, getDriverById } = useDrivers();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [licenseImagePreview, setLicenseImagePreview] = useState<string | null>(DEFAULT_LICENSE_IMAGE);
   
   const isEditMode = !!id;
   const existingDriver = isEditMode ? getDriverById(id) : undefined;
@@ -72,6 +76,7 @@ const DriverForm = () => {
       employeeId: "",
       department: "",
       imageUrl: "",
+      licenseImageUrl: DEFAULT_LICENSE_IMAGE,
       status: "active",
       notes: "",
     },
@@ -90,17 +95,27 @@ const DriverForm = () => {
       if (existingDriver.imageUrl) {
         setImagePreview(existingDriver.imageUrl);
       }
+      
+      if (existingDriver.licenseImageUrl) {
+        setLicenseImagePreview(existingDriver.licenseImageUrl);
+      }
     }
   }, [existingDriver, form, isEditMode]);
   
   // Submit handler
   const onSubmit = (data: DriverFormValues) => {
     try {
+      // Convert the date to string format before saving
+      const formattedData = {
+        ...data,
+        licenseExpiryDate: format(data.licenseExpiryDate, 'yyyy-MM-dd')
+      };
+      
       if (isEditMode && existingDriver) {
-        updateDriver(existingDriver.id, data);
+        updateDriver(existingDriver.id, formattedData);
         toast.success("Driver updated successfully");
       } else {
-        addDriver(data);
+        addDriver(formattedData as Omit<Driver, 'id' | 'createdAt'>);
         toast.success("Driver added successfully");
       }
       navigate('/admin/drivers');
@@ -114,6 +129,12 @@ const DriverForm = () => {
     const url = e.target.value;
     form.setValue('imageUrl', url);
     setImagePreview(url);
+  };
+  
+  const handleLicenseImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value || DEFAULT_LICENSE_IMAGE;
+    form.setValue('licenseImageUrl', url);
+    setLicenseImagePreview(url);
   };
   
   return (
@@ -257,6 +278,44 @@ const DriverForm = () => {
                         </FormControl>
                         <FormDescription>
                           Enter a URL for the driver's profile image
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="licenseImageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>License Image URL</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            <Input 
+                              placeholder="License image URL" 
+                              value={field.value || DEFAULT_LICENSE_IMAGE}
+                              onChange={handleLicenseImageUrlChange}
+                            />
+                            {licenseImagePreview && (
+                              <div className="rounded-md overflow-hidden w-full max-w-xs border">
+                                <img 
+                                  src={licenseImagePreview} 
+                                  alt="License preview" 
+                                  className="w-full h-auto object-contain"
+                                  onError={() => setLicenseImagePreview(DEFAULT_LICENSE_IMAGE)}
+                                />
+                              </div>
+                            )}
+                            {!licenseImagePreview && (
+                              <div className="rounded-md w-full max-w-xs h-40 border flex items-center justify-center bg-secondary/40">
+                                <License className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Enter a URL for the driver's license image (default provided)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

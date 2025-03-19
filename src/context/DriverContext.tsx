@@ -16,6 +16,7 @@ export interface Driver {
   employeeId: string;
   department: string;
   imageUrl?: string;
+  licenseImageUrl?: string;
   status: 'active' | 'suspended' | 'inactive';
   notes?: string;
   createdAt: string;
@@ -30,6 +31,9 @@ interface DriverContextType {
 }
 
 const DriverContext = createContext<DriverContextType | undefined>(undefined);
+
+// Default license image URL
+const DEFAULT_LICENSE_IMAGE = "https://res.cloudinary.com/dfjv35kht/image/upload/v1742397639/Driver_licence_number_ezde8n.png";
 
 // Mock data for initial drivers
 const initialDrivers: Driver[] = [
@@ -46,6 +50,7 @@ const initialDrivers: Driver[] = [
     employeeId: "EMP001",
     department: "Waste Management",
     imageUrl: "https://randomuser.me/api/portraits/men/1.jpg",
+    licenseImageUrl: DEFAULT_LICENSE_IMAGE,
     status: "active",
     notes: "Experienced driver with good safety record",
     createdAt: "2022-04-10T09:00:00Z"
@@ -63,6 +68,7 @@ const initialDrivers: Driver[] = [
     employeeId: "EMP002",
     department: "Parks and Recreation",
     imageUrl: "https://randomuser.me/api/portraits/women/2.jpg",
+    licenseImageUrl: DEFAULT_LICENSE_IMAGE,
     status: "active",
     notes: "Specialist in heavy machinery operation",
     createdAt: "2021-08-15T14:30:00Z"
@@ -80,6 +86,7 @@ const initialDrivers: Driver[] = [
     employeeId: "EMP003",
     department: "Road Maintenance",
     imageUrl: "https://randomuser.me/api/portraits/men/3.jpg",
+    licenseImageUrl: DEFAULT_LICENSE_IMAGE,
     status: "suspended",
     notes: "Recent traffic violation, under review",
     createdAt: "2022-01-18T10:15:00Z"
@@ -97,6 +104,7 @@ const initialDrivers: Driver[] = [
     employeeId: "EMP004",
     department: "Water Services",
     imageUrl: "https://randomuser.me/api/portraits/women/4.jpg",
+    licenseImageUrl: DEFAULT_LICENSE_IMAGE,
     status: "active",
     notes: "Perfect driving record",
     createdAt: "2022-06-22T08:45:00Z"
@@ -123,6 +131,7 @@ export const DriverProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       ...driverData,
       id: uuidv4(),
       createdAt: new Date().toISOString(),
+      licenseImageUrl: driverData.licenseImageUrl || DEFAULT_LICENSE_IMAGE
     };
 
     setDrivers(prevDrivers => {

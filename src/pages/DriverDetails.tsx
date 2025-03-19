@@ -1,94 +1,73 @@
 
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDrivers } from '@/context/DriverContext';
-import { useLicense } from '@/context/LicenseContext';
-import { Button } from '@/components/ui/button';
+import Navbar from '@/components/Navbar';
 import { 
   Card, CardContent, CardDescription, 
-  CardFooter, CardHeader, CardTitle 
+  CardHeader, CardTitle 
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
-  ArrowLeft, Edit, Trash2, Mail, Phone, MapPin, 
-  Calendar, AlertCircle, Clock, Award, FileText, 
-  Building, BadgeCheck, Clipboard, Image
+  ArrowLeft, Edit, Trash2, Mail, Phone, 
+  MapPin, FileText, CalendarClock, Flag, AlertCircle,
+  BadgeInfo, Building, User
 } from 'lucide-react';
-import { 
-  AlertDialog, AlertDialogAction, AlertDialogCancel, 
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter, 
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger 
-} from '@/components/ui/alert-dialog';
+import { format, parseISO } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { format, parseISO, differenceInDays } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import LicenseCard from '@/components/LicenseCard';
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogTrigger, 
+  DialogFooter, DialogClose 
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
-const DriverDetails = () => {
-  const navigate = useNavigate();
+const DriverDetails: React.FC = () => {
   const { id } = useParams();
-  const { drivers, deleteDriver } = useDrivers();
-  const { licenses } = useLicense();
+  const navigate = useNavigate();
+  const { getDriverById, deleteDriver } = useDrivers();
   
-  // Find the driver by ID
-  const driver = drivers.find(d => d.id === id);
+  const driver = getDriverById(id);
   
-  // Get driver's licenses
-  const driverLicenses = licenses.filter(license => 
-    license.driverName === driver?.name
-  );
-  
-  // Handle if driver not found
   if (!driver) {
     return (
       <div className="min-h-screen flex flex-col bg-secondary/30">
         <Navbar />
         <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
-          <div className="flex flex-col space-y-8 animate-in-up">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/admin/drivers')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-2xl font-bold tracking-tight">
-                Driver Not Found
-              </h1>
-            </div>
-            
-            <Card className="glass">
-              <CardContent className="p-6 flex flex-col items-center justify-center space-y-4 py-10">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-muted-foreground text-center">
-                  The driver you are looking for could not be found.
-                </p>
-                <Button 
-                  onClick={() => navigate('/admin/drivers')}
-                  className="mt-2"
-                >
-                  Return to Driver List
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="flex items-center gap-2 mb-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/admin/drivers')}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Driver Not Found</h1>
           </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center justify-center text-center p-8">
+                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Driver Not Found</h2>
+                <p className="text-muted-foreground mb-4">
+                  The driver you're looking for doesn't exist or has been removed.
+                </p>
+                <Button onClick={() => navigate('/admin/drivers')}>
+                  Return to Drivers List
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </main>
       </div>
     );
   }
   
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
+  const handleDelete = () => {
+    deleteDriver(driver.id);
+    toast.success("Driver has been deleted");
+    navigate('/admin/drivers');
   };
   
   const getStatusColor = (status: string) => {
@@ -104,20 +83,12 @@ const DriverDetails = () => {
     }
   };
   
-  const handleDeleteDriver = () => {
-    deleteDriver(driver.id);
-    navigate('/admin/drivers');
-  };
-  
-  const isNearExpiry = differenceInDays(parseISO(driver.licenseExpiryDate), new Date()) <= 90;
-  const isHighPenalty = driver.penaltyPoints >= 7;
-  
   return (
     <div className="min-h-screen flex flex-col bg-secondary/30">
       <Navbar />
       
-      <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full">
-        <div className="flex flex-col space-y-8 animate-in-up">
+      <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
+        <div className="flex flex-col space-y-8 animate-in fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
@@ -133,290 +104,191 @@ const DriverDetails = () => {
             </div>
             
             <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/admin/drivers/edit/${driver.id}`)}
-                className="gap-2"
-              >
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="text-destructive border-destructive/20 hover:bg-destructive/10 gap-2"
-                  >
-                    <Trash2 className="h-4 w-4" />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete driver record?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete {driver.name}'s record. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={handleDeleteDriver}
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Driver</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete {driver.name}? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleDelete}
                     >
                       Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              <Button 
+                variant="default" 
+                onClick={() => navigate(`/admin/drivers/edit/${driver.id}`)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Driver Profile Card */}
             <Card className="lg:col-span-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-semibold">Profile</CardTitle>
-                <Badge className={getStatusColor(driver.status)}>
-                  {driver.status}
-                </Badge>
+              <CardHeader className="pb-2">
+                <CardTitle>Profile</CardTitle>
+                <CardDescription>
+                  Driver information
+                </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4 pb-0">
+              <CardContent>
                 <div className="flex flex-col items-center text-center mb-6">
-                  {driver.imageUrl ? (
-                    <Avatar className="h-24 w-24 mb-3">
-                      <AvatarImage src={driver.imageUrl} alt={driver.name} />
-                      <AvatarFallback className="text-lg">{getInitials(driver.name)}</AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="h-24 w-24 bg-secondary/50 rounded-full flex items-center justify-center mb-3">
-                      <Image className="h-10 w-10 text-muted-foreground" />
+                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-background">
+                    {driver.imageUrl ? (
+                      <img 
+                        src={driver.imageUrl} 
+                        alt={driver.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-secondary/50">
+                        <User className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <h2 className="text-xl font-bold">{driver.name}</h2>
+                  <Badge className={`mt-2 ${getStatusColor(driver.status)}`}>
+                    {driver.status.charAt(0).toUpperCase() + driver.status.slice(1)}
+                  </Badge>
+                  
+                  <div className="mt-4 text-left space-y-3 w-full">
+                    <div className="flex items-start gap-2">
+                      <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm break-all">{driver.email}</span>
                     </div>
-                  )}
-                  <h2 className="text-xl font-semibold">{driver.name}</h2>
-                  <p className="text-muted-foreground">{driver.department}</p>
+                    
+                    <div className="flex items-start gap-2">
+                      <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm">{driver.phone}</span>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm break-all">{driver.address}</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <Separator className="my-4" />
                 
-                <dl className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
-                      <BadgeCheck className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Employee ID</span>
-                      <span className="font-medium">{driver.employeeId}</span>
-                    </dd>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <BadgeInfo className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Employee ID</span>
+                    </div>
+                    <span className="text-sm">{driver.employeeId}</span>
                   </div>
                   
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Email</span>
-                      <span className="font-medium">{driver.email}</span>
-                    </dd>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Phone</span>
-                      <span className="font-medium">{driver.phone}</span>
-                    </dd>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Address</span>
-                      <span className="font-medium">{driver.address}</span>
-                    </dd>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Department</span>
-                      <span className="font-medium">{driver.department}</span>
-                    </dd>
+                      <span className="text-sm font-medium">Department</span>
+                    </div>
+                    <span className="text-sm">{driver.department}</span>
                   </div>
                   
-                  <div className="flex items-start gap-3">
-                    <dt className="flex gap-2 items-center min-w-[36px]">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </dt>
-                    <dd className="text-sm">
-                      <span className="block text-muted-foreground">Added on</span>
-                      <span className="font-medium">
-                        {format(parseISO(driver.createdAt), 'PPP')}
-                      </span>
-                    </dd>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Added On</span>
+                    </div>
+                    <span className="text-sm">
+                      {format(parseISO(driver.createdAt), 'MMM d, yyyy')}
+                    </span>
                   </div>
-                </dl>
+                </div>
               </CardContent>
             </Card>
             
-            {/* License & Additional Info */}
+            {/* License Details */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-semibold">License Information</CardTitle>
+                <CardTitle>License Details</CardTitle>
+                <CardDescription>
+                  Driver's license information
+                </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
                       <div className="flex items-center gap-2">
-                        <Award className="h-5 w-5 text-primary" />
-                        <span className="font-semibold">License Type</span>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">License Number</span>
                       </div>
-                      <span>{driver.licenseType}</span>
+                      <span className="text-sm font-mono">{driver.licenseNumber}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        <span className="font-semibold">License Number</span>
+                        <BadgeInfo className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">License Type</span>
                       </div>
-                      <span>{driver.licenseNumber}</span>
+                      <span className="text-sm">{driver.licenseType}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between">
                       <div className="flex items-center gap-2">
-                        <Clock className={cn(
-                          "h-5 w-5",
-                          isNearExpiry ? "text-amber-500" : "text-primary"
-                        )} />
-                        <span className="font-semibold">Expiry Date</span>
+                        <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Expiry Date</span>
                       </div>
-                      <span className={cn(
-                        isNearExpiry && "text-amber-600 dark:text-amber-400"
-                      )}>
-                        {format(parseISO(driver.licenseExpiryDate), 'PPP')}
+                      <span className="text-sm">
+                        {format(parseISO(driver.licenseExpiryDate), 'MMM d, yyyy')}
                       </span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className={cn(
-                          "h-5 w-5",
-                          isHighPenalty ? "text-destructive" : "text-primary"
-                        )} />
-                        <span className="font-semibold">Penalty Points</span>
+                        <Flag className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Penalty Points</span>
                       </div>
-                      <span className={cn(
-                        isHighPenalty && "text-destructive"
-                      )}>
-                        {driver.penaltyPoints} / 12
-                      </span>
+                      <span className="text-sm font-mono">{driver.penaltyPoints} / 12</span>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
-                    {(isNearExpiry || isHighPenalty) && (
-                      <div className="p-4 rounded-md bg-secondary/80 flex items-start gap-2">
-                        {isHighPenalty ? (
-                          <>
-                            <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                            <p className="text-sm">
-                              This driver has {driver.penaltyPoints} penalty points, which is approaching the limit. Additional monitoring may be required.
-                            </p>
-                          </>
-                        ) : isNearExpiry ? (
-                          <>
-                            <Clock className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
-                            <p className="text-sm">
-                              This license will expire in {differenceInDays(parseISO(driver.licenseExpiryDate), new Date())} days. Please ensure timely renewal.
-                            </p>
-                          </>
-                        ) : null}
-                      </div>
-                    )}
-                    
-                    {driver.notes && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Clipboard className="h-5 w-5 text-primary" />
-                          <span className="font-semibold">Notes</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1 p-3 bg-secondary/50 rounded-md">
-                          {driver.notes}
-                        </p>
-                      </div>
-                    )}
+                    <h3 className="text-sm font-medium">License Image</h3>
+                    <div className="rounded-md border overflow-hidden">
+                      <img 
+                        src={driver.licenseImageUrl || "https://res.cloudinary.com/dfjv35kht/image/upload/v1742397639/Driver_licence_number_ezde8n.png"} 
+                        alt="Driver's License" 
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
                   </div>
                 </div>
                 
                 <Separator className="my-6" />
                 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">License History</h3>
-                  
-                  <Tabs defaultValue="active" className="w-full">
-                    <TabsList>
-                      <TabsTrigger value="active">Active License</TabsTrigger>
-                      <TabsTrigger value="history">License History</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="active" className="mt-4">
-                      {driverLicenses.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {driverLicenses
-                            .filter(license => license.status === 'approved')
-                            .slice(0, 1)
-                            .map(license => (
-                              <LicenseCard 
-                                key={license.id} 
-                                license={license} 
-                                showActions={false} 
-                              />
-                            ))}
-                        </div>
-                      ) : (
-                        <Card className="bg-secondary/50">
-                          <CardContent className="py-4 flex flex-col items-center justify-center text-center">
-                            <p className="text-muted-foreground">
-                              No active license found. The driver may need to upload a license document.
-                            </p>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="history" className="mt-4">
-                      {driverLicenses.length > 1 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {driverLicenses
-                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                            .slice(1)
-                            .map(license => (
-                              <LicenseCard 
-                                key={license.id} 
-                                license={license} 
-                                showActions={false} 
-                              />
-                            ))}
-                        </div>
-                      ) : (
-                        <Card className="bg-secondary/50">
-                          <CardContent className="py-4 flex flex-col items-center justify-center text-center">
-                            <p className="text-muted-foreground">
-                              No license history available for this driver.
-                            </p>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </TabsContent>
-                  </Tabs>
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Notes</h3>
+                  <div className="p-3 rounded-md border bg-secondary/20 min-h-24">
+                    <p className="text-sm text-muted-foreground">
+                      {driver.notes || "No additional notes for this driver."}
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
