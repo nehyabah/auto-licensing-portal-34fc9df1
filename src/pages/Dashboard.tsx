@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -277,6 +278,8 @@ const Dashboard = () => {
                     <FileInput className="mr-2 h-4 w-4" />
                     Upload License
                   </Button>
+                  
+                  <RegisterPointsDialog />
                   
                   <Button 
                     variant="outline" 
